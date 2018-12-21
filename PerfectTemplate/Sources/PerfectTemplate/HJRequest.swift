@@ -8,6 +8,7 @@
 import Foundation
 import PerfectHTTP
 import PerfectMySQL
+import PerfectCRUD
 
 /** 官方案例 */
 func handler(request: HTTPRequest, response: HTTPResponse) {
@@ -111,7 +112,7 @@ func posthandlerAdd(request: HTTPRequest, response: HTTPResponse) {
     
     response.completed()
     
-    fetchData()
+    crudLinkDB()
 }
 
 
@@ -121,7 +122,7 @@ func fetchData() {
     let testHost = "localhost"
     let testUser = "root"
     let testPassword = "11111111"
-    let testDB = "hanwanjie"
+    let testDB = "wmm"
     
     /** 创建一个MySQL连接实例 */
     let dataMysql = MySQL()
@@ -199,6 +200,9 @@ func createTable(sql:MySQL, name:String) ->Bool {
     id VARCHAR(64) PRIMARY KEY NOT NULL,
     expiration INTEGER)
     """
+    
+    
+    
     guard sql.query(statement: instruction) else {
         /** 创建失败 */
         print("创建表失败")
@@ -300,3 +304,145 @@ func queryData(sql:MySQL, name:String) ->Bool {
     return true
 }
 
+struct PhoneNumber: Codable {
+    let personId: UUID
+    let planetCode: Int
+    let number: String
+}
+struct Person: Codable {
+    let id: UUID
+    let firstName: String
+    let lastName: String
+    let phoneNumbers: [PhoneNumber]?
+}
+
+func crudLinkDB() {
+    let testHost = "localhost"
+    let testUser = "root"
+    let testPassword = "11111111"
+    let testDB = "wmm"
+    
+    /** 创建一个MySQL连接实例 */
+    let sql = MySQL()
+    
+    /** 连接数据库 */
+    let connected = sql.connect(host: testHost, user: testUser, password: testPassword)
+    
+    /** 连接数据库是否成功 */
+    guard connected else {
+        print(sql.errorMessage())
+        return
+    }
+    
+    selectDatabase(sql: sql, name: testDB)
+    
+    /** 关闭数据库 */
+    defer {
+        sql.close()
+    }
+    
+    
+    guard let databaseConfiguration =  try? MySQLDatabaseConfiguration(connection: sql) else {
+        print("配置数据库失败")
+        return;
+    }
+  
+    let db = Database(configuration: databaseConfiguration)
+    
+    queryData(db: db)
+    
+//    crudAddData(db: db)
+    
+//    do {
+//        // Insert some sample data.
+//        let owen = Person(id: UUID(), firstName: "Owen", lastName: "Lars", phoneNumbers: nil)
+//        let beru = Person(id: UUID(), firstName: "Beru", lastName: "Lars", phoneNumbers: nil)
+//
+//        // Insert the people
+//        try personTable.insert([owen, beru])
+//
+//        // Give them some phone numbers
+//        try numbersTable.insert([
+//            PhoneNumber(personId: owen.id, planetCode: 12, number: "555-555-1212"),
+//            PhoneNumber(personId: owen.id, planetCode: 15, number: "555-555-2222"),
+//            PhoneNumber(personId: beru.id, planetCode: 12, number: "555-555-1212")])
+//    } catch {
+//        print("插入失败")
+//    }
+    
+}
+
+
+/** 创建表 */
+func crudCreatTable(db:Database<MySQLDatabaseConfiguration>, name:Codable) {
+    
+    do {
+        try db.create(Person.self, policy: .reconcileTable)
+    } catch {
+        print(error.localizedDescription)
+        print("创建Person表失败")
+    }
+    
+//    let personTable = db.table(name.self)
+//    let numbersTable = db.table(PhoneNumber.self)
+//
+//    guard let numbersT = try? numbersTable.index(\.personId) else {
+//        print("添加主键")
+//        return;
+//    }
+    
+}
+
+/** 增加数据 */
+func crudAddData(db:Database<MySQLDatabaseConfiguration>) {
+    
+    let personTable = db.table(Person.self)
+    let numbersTable = db.table(PhoneNumber.self)
+        do {
+            // Insert some sample data.
+            let owen = Person(id: UUID(), firstName: "aaa", lastName: "rrars", phoneNumbers: nil)
+            let beru = Person(id: UUID(), firstName: "bbb", lastName: "yyars", phoneNumbers: nil)
+    
+            // Insert the people
+            try personTable.insert([owen, beru])
+    
+            // Give them some phone numbers
+            try numbersTable.insert([
+                PhoneNumber(personId: owen.id, planetCode: 12, number: "555-555-1212"),
+                PhoneNumber(personId: owen.id, planetCode: 15, number: "555-555-2222"),
+                PhoneNumber(personId: beru.id, planetCode: 12, number: "555-555-1212")])
+        } catch {
+            print("插入失败")
+        }
+    
+}
+
+/** 查询数据 */
+func queryData(db:Database<MySQLDatabaseConfiguration>) {
+    let personTable = db.table(Person.self)
+    
+    
+    do {
+        let query = try personTable
+            .order(by: \.lastName)
+            .select()
+        
+        for user in query {
+            // We joined PhoneNumbers, so we should have values here.
+            print(user.lastName)
+//            print(user.firstName)
+//            guard let numbers = user.phoneNumbers else {
+//                continue
+//            }
+//            for number in numbers {
+//                print(number.number)
+//            }
+        }
+    } catch {
+        print("查询错误")
+    }
+    
+    
+    
+    
+}

@@ -19,7 +19,6 @@
 
 import PerfectHTTP
 import PerfectHTTPServer
-import PerfectCRUD
 
 var routes = Routes()
 routes.add(method: .get, uri: "/", handler: handler)
@@ -38,4 +37,3 @@ try HTTPServer.launch(name: "localhost",
                       routes: routes,
                       responseFilters: [
                         (PerfectHTTPServer.HTTPFilter.contentCompression(data: [:]), HTTPFilterPriority.high)])
-
