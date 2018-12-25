@@ -31,3 +31,8 @@ let User_codeError_1001 = HJErrorStruct.init(code: 1001, msg: "验证码错误�
 let User_passWordError_1002 = HJErrorStruct.init(code: 1002, msg: "密码错误。")
 /** 登录 该邮箱未注册错误 */
 let User_emailNoError_1003 = HJErrorStruct.init(code: 1003, msg: "该邮箱未注册。")
+
+/** 留言板 */
+
+/** 登录 该用户不存在 */
+let User_userNoError_1004 = HJErrorStruct.init(code: 1004, msg: "该用户不存在。")

@@ -35,11 +35,18 @@ routes.add(method: .get, uri: "/**",
                                       allowResponseFilters: true).handleRequest)
 
 /** 登录 */
+
 /** 注册用户 */
 routes.add(method: .post, uri: "/user/registered", handler: registeredUsers)
 /** 登录用户 */
 routes.add(method: .post, uri: "/user/loginUsers", handler: loginUsers)
 
+/** 留言板 */
+
+/** 发布留言 */
+routes.add(method: .post, uri: "/messageBoard/postMessage", handler: postMessage)
+/** 获取留言 */
+routes.add(method: .get, uri: "/messageBoard/getMessage", handler: getMessage)
 
 /** 连接服务器 */
 try HTTPServer.launch(name: "localhost",

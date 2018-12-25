@@ -200,3 +200,179 @@ func loginUsers(request: HTTPRequest, response: HTTPResponse) {
     }
     
 }
+
+
+/// 发布留言
+///
+/// - Parameters:
+///   - request: 请求
+///   - response: 响应
+func postMessage(request: HTTPRequest, response: HTTPResponse) {
+    let sql = MySQL()
+    let connected = sql.connect(host: serveHost, user: serveUserName, password: dataPassword)
+    guard connected else {
+        try! response.setBody(json: ["code":Request_serverError_500.code,
+                                     "msg":Request_serverError_500.msg,
+                                     "result":[]
+            ])
+        
+        response.completed()
+        return
+        
+    }
+    guard sql.selectDatabase(named: dataName) else {
+        try! response.setBody(json: ["code":Request_serverError_500.code,
+                                     "msg":Request_serverError_500.msg,
+                                     "result":[]
+            ])
+        
+        response.completed()
+        return
+    }
+    
+    defer { sql.close() }
+    
+    let databaseConfiguration = MySQLDatabaseConfiguration(connection: sql)
+    let db = Database(configuration: databaseConfiguration)
+    
+    let content = request.param(name: "content") ?? ""
+    let userId = request.param(name: "userId") ?? ""
+    
+    let userTable = db.table(User.self)
+    /** 查询对应用户的密码 */
+    do {
+        let query = try userTable
+            .order(by: \.userId)
+            .where(\User.userId == userId)
+            .select()
+        let usernull =  query.first { (user) -> Bool in
+            return user.userId == userId
+        }
+        
+        /** 校验用户是否存在 */
+        guard let user = usernull   else {
+            try! response.setBody(json: ["code":User_userNoError_1004.code,
+                                         "msg":User_userNoError_1004.msg,
+                                         "result":[]
+                ])
+            response.completed()
+            return
+        }
+        
+        
+        let messageTable = db.table(MessageBoard.self)
+        
+        var messageId = ""
+        for _ in 0...9 {
+            let arcCode = Int(arc4random() % 10)
+            messageId = messageId + "\(arcCode)"
+        }
+        
+        //获取当前时间
+        let now = Date()
+        
+        // 创建一个日期格式器
+        let dformatter = DateFormatter()
+        dformatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        print("当前日期时间：\(dformatter.string(from: now))")
+        let time = dformatter.string(from: now)
+        
+        //当前时间的时间戳
+        let timeInterval:TimeInterval = now.timeIntervalSince1970
+        let timeStamp = Int(timeInterval)
+        print("当前时间的时间戳：\(timeStamp)")
+        
+        do {
+            try messageTable.insert([MessageBoard.init(userId: user.userId, name: user.name, address: user.address, sex: user.sex, content: content, contentId: messageId, creatTime:time, timeStamp:timeStamp)])
+        } catch {
+            response.status = HTTPResponseStatus.custom(code: 500, message: "服务器异常")
+            print(error)
+            print("插入失败")
+        }
+
+        /** 发布留言成功 */
+        try! response.setBody(json: ["code":Request_successful_200.code,
+                                     "msg":postSuccessful,
+                                     "result":[]
+            ])
+        response.completed()
+        
+    } catch {
+        print("查询错误")
+        try! response.setBody(json: ["code":Request_serverError_500.code,
+                                     "msg":Request_serverError_500.msg,
+                                     "result":[]
+            ])
+        response.completed()
+        return
+        
+    }
+    
+}
+
+
+/// 获取留言
+///
+/// - Parameters:
+///   - request: 请求
+///   - response: 响应
+func getMessage(request: HTTPRequest, response: HTTPResponse) {
+    let sql = MySQL()
+    let connected = sql.connect(host: serveHost, user: serveUserName, password: dataPassword)
+    guard connected else {
+        try! response.setBody(json: ["code":Request_serverError_500.code,
+                                     "msg":Request_serverError_500.msg,
+                                     "result":[]
+            ])
+        
+        response.completed()
+        return
+        
+    }
+    guard sql.selectDatabase(named: dataName) else {
+        try! response.setBody(json: ["code":Request_serverError_500.code,
+                                     "msg":Request_serverError_500.msg,
+                                     "result":[]
+            ])
+        
+        response.completed()
+        return
+    }
+    
+    defer { sql.close() }
+    
+    let databaseConfiguration = MySQLDatabaseConfiguration(connection: sql)
+    let db = Database(configuration: databaseConfiguration)
+    
+    let messageTable = db.table(MessageBoard.self)
+        do {
+            let query = try messageTable
+                .select()
+            var array:[[String : String]] = [[String : String]]()
+            
+            for message in query {
+                let dict:[String : String] = ["name":message.name,
+                                              "content":message.content,
+                                              "address":message.address,
+                                              "sex":message.sex,
+                                              "contentId":message.contentId,
+                                              "creatTime":message.creatTime,
+                                              ]
+                array.append(dict)
+            }
+            
+            /** 获取留言成功 */
+            try! response.setBody(json: ["code":Request_successful_200.code,
+                                         "msg":Request_successful_200.msg,
+                                         "result":array
+                ])
+            response.completed()
+            
+        } catch {
+            response.status = HTTPResponseStatus.custom(code: 500, message: "服务器异常")
+            print(error)
+            print("插入失败")
+        }
+    
+}
+
