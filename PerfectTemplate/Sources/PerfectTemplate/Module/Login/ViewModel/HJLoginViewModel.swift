@@ -348,6 +348,9 @@ func getMessage(request: HTTPRequest, response: HTTPResponse) {
         do {
             let query = try messageTable
                 .select()
+                .sorted(by: {
+                     $0.timeStamp > $1.timeStamp
+                })
             var array:[[String : String]] = [[String : String]]()
             
             for message in query {
