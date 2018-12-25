@@ -341,7 +341,6 @@ func crudLinkDB() {
         sql.close()
     }
     
-    
     guard let databaseConfiguration =  try? MySQLDatabaseConfiguration(connection: sql) else {
         print("配置数据库失败")
         return;

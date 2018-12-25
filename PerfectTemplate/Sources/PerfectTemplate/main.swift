@@ -19,8 +19,11 @@
 
 import PerfectHTTP
 import PerfectHTTPServer
+import PerfectMySQL
 
+/** 声明路由 */
 var routes = Routes()
+
 routes.add(method: .get, uri: "/", handler: handler)
 
 routes.add(method: .get, uri: "/get", handler: gethandlerAdd)
@@ -31,9 +34,17 @@ routes.add(method: .get, uri: "/**",
            handler: StaticFileHandler(documentRoot: "./webroot",
                                       allowResponseFilters: true).handleRequest)
 
+/** 登录 */
+/** 注册用户 */
+routes.add(method: .post, uri: "/user/registered", handler: registeredUsers)
+/** 登录用户 */
+routes.add(method: .post, uri: "/user/loginUsers", handler: loginUsers)
 
+
+/** 连接服务器 */
 try HTTPServer.launch(name: "localhost",
-                      port: 8181,
+                      port: 8182,
                       routes: routes,
                       responseFilters: [
                         (PerfectHTTPServer.HTTPFilter.contentCompression(data: [:]), HTTPFilterPriority.high)])
+
