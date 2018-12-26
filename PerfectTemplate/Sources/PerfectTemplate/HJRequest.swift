@@ -113,6 +113,8 @@ func posthandlerAdd(request: HTTPRequest, response: HTTPResponse) {
     response.completed()
     
     crudLinkDB()
+    
+    
 }
 
 
@@ -350,6 +352,8 @@ func crudLinkDB() {
     
     queryData(db: db)
     
+    crudCreatTable(db: db, name: "persion")
+    
 //    crudAddData(db: db)
     
 //    do {
@@ -443,5 +447,47 @@ func queryData(db:Database<MySQLDatabaseConfiguration>) {
     
     
     
+    
+}
+
+
+func addtable(request: HTTPRequest, response: HTTPResponse) {
+    
+    do {
+        
+        let db = Database(configuration: try MySQLDatabaseConfiguration(database: dataName, host:serveHost , username: serveUserName, password: dataPassword))
+        
+        try db.create(Person.self, policy: .reconcileTable)
+        
+        let personTable = db.table(Person.self)
+        let numbersTable = db.table(PhoneNumber.self)
+        
+        try numbersTable.index(\.personId)
+        
+        let owen = Person(id: UUID(), firstName: "Owen", lastName: "Lars", phoneNumbers: nil)
+        let beru = Person(id: UUID(), firstName: "Beru", lastName: "Lars", phoneNumbers: nil)
+        
+        // Insert the people
+        try personTable.insert([owen, beru])
+        
+        // Give them some phone numbers
+        try numbersTable.insert([
+            PhoneNumber(personId: owen.id, planetCode: 12, number: "555-555-1212"),
+            PhoneNumber(personId: owen.id, planetCode: 15, number: "555-555-2222"),
+            PhoneNumber(personId: beru.id, planetCode: 12, number: "555-555-1212")])
+        
+        try! response.setBody(json: ["code":Request_successful_200.code,
+                                     "msg":Request_successful_200.msg,
+                                     "result":[]
+            ])
+        response.completed()
+        
+    } catch  {
+        try! response.setBody(json: ["code":Request_serverError_500.code,
+                                     "msg":Request_serverError_500.msg,
+                                     "result":[]
+            ])
+        response.completed()
+    }
     
 }

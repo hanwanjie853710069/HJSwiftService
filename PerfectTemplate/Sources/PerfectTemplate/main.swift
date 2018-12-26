@@ -28,7 +28,7 @@ routes.add(method: .get, uri: "/", handler: handler)
 
 routes.add(method: .get, uri: "/get", handler: gethandlerAdd)
 
-routes.add(method: .post, uri: "/post", handler: posthandlerAdd)
+routes.add(method: .post, uri: "/post", handler: addtable)
 
 routes.add(method: .get, uri: "/**",
            handler: StaticFileHandler(documentRoot: "./webroot",

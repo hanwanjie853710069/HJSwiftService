@@ -255,7 +255,7 @@ func postMessage(request: HTTPRequest, response: HTTPResponse) {
         print("当前时间的时间戳：\(timeStamp)")
 
         do {
-            try messageTable.insert([MessageBoard.init(userId: user.userId, name: user.name, address: user.address, sex: user.sex, content: content, contentId: messageId, creatTime:time, timeStamp:timeStamp)])
+            try messageTable.insert([MessageBoard.init(userId: user.userId, name: user.name, address: user.address, sex: user.sex, content: content, contentId: messageId, creatTime:time, timeStamp:timeStamp, user:nil)])
         } catch {
             response.status = HTTPResponseStatus.custom(code: 500, message: "服务器异常")
             print(error)
@@ -296,6 +296,7 @@ func getMessage(request: HTTPRequest, response: HTTPResponse) {
     let db = databaseConfiguration(mySql:mySql)
     
     let messageTable = db.table(MessageBoard.self)
+    let userTable = db.table(User.self)
     
     let size = request.param(name: "size") ?? ""
     let page = request.param(name: "page") ?? ""
@@ -311,10 +312,19 @@ func getMessage(request: HTTPRequest, response: HTTPResponse) {
         var array:[[String : String]] = [[String : String]]()
         
         for message in query {
-            let dict:[String : String] = ["name":message.name,
+            
+            let queryuser = try userTable
+                .where(\User.userId == message.userId)
+                .select()
+            
+           let user = queryuser.first {
+                $0.userId == message.userId
+            }
+            
+            let dict:[String : String] = ["name":user?.name ?? "",
                                           "content":message.content,
-                                          "address":message.address,
-                                          "sex":message.sex,
+                                          "address":user?.address ?? "",
+                                          "sex":user?.sex ?? "",
                                           "contentId":message.contentId,
                                           "creatTime":message.creatTime,
                                           ]

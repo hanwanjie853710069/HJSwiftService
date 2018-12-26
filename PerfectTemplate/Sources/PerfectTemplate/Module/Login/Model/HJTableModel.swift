@@ -41,4 +41,6 @@ struct MessageBoard: Codable {
     let creatTime: String
     /** 时间戳 */
     let timeStamp: Int
+    /** 用户 */
+    let user: User?
 }
