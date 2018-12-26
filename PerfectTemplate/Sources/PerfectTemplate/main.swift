@@ -46,7 +46,11 @@ routes.add(method: .post, uri: "/user/loginUsers", handler: loginUsers)
 /** 发布留言 */
 routes.add(method: .post, uri: "/messageBoard/postMessage", handler: postMessage)
 /** 获取留言 */
-routes.add(method: .get, uri: "/messageBoard/getMessage", handler: getMessage)
+routes.add(method: .post, uri: "/messageBoard/getMessage", handler: getMessage)
+/** 更新用户信息 */
+routes.add(method: .post, uri: "/user/updateUserMessage", handler: updateUserMessage)
+/** 获取用户信息 */
+routes.add(method: .post, uri: "/user/getUserMessage", handler: getUserMessage)
 
 /** 连接服务器 */
 try HTTPServer.launch(name: "localhost",
